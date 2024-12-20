@@ -1,0 +1,188 @@
+import React, { useState } from 'react';
+import { ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+
+const monthlyData = [
+  { mois: 'Jan', tBordeaux: 7.1, tNantes: 6.4, tToulouse: 6.3, tLyon: 3.9, pBordeaux: 86.9, pNantes: 87.9, pToulouse: 52.6, pLyon: 55, sBordeaux: 89.8, sNantes: 73, sToulouse: 82, sLyon: 72.7 },
+  { mois: 'Fév', tBordeaux: 7.8, tNantes: 6.7, tToulouse: 7.2, tLyon: 4.9, pBordeaux: 66.9, pNantes: 67.5, pToulouse: 37.1, pLyon: 46.9, sBordeaux: 117.4, sNantes: 102, sToulouse: 118.6, sLyon: 99.3 },
+  { mois: 'Mar', tBordeaux: 10.7, tNantes: 9.2, tToulouse: 10.3, tLyon: 8.8, pBordeaux: 63.3, pNantes: 58.4, pToulouse: 45.4, pLyon: 54.1, sBordeaux: 170.2, sNantes: 147, sToulouse: 173.6, sLyon: 167.8 },
+  { mois: 'Avr', tBordeaux: 13.0, tNantes: 11.4, tToulouse: 12.8, tLyon: 12.1, pBordeaux: 75.6, pNantes: 58.3, pToulouse: 65.7, pLyon: 72.4, sBordeaux: 186, sNantes: 183, sToulouse: 195.1, sLyon: 182.6 },
+  { mois: 'Mai', tBordeaux: 16.6, tNantes: 14.7, tToulouse: 16.6, tLyon: 16.1, pBordeaux: 71.1, pNantes: 61.0, pToulouse: 74.2, pLyon: 82.7, sBordeaux: 220.8, sNantes: 203, sToulouse: 211.1, sLyon: 216.5 },
+  { mois: 'Juin', tBordeaux: 19.8, tNantes: 17.8, tToulouse: 20.5, tLyon: 19.9, pBordeaux: 70.4, pNantes: 48.5, pToulouse: 64.4, pLyon: 70.7, sBordeaux: 237.7, sNantes: 213, sToulouse: 244.1, sLyon: 251.5 },
+  { mois: 'Juil', tBordeaux: 21.7, tNantes: 19.7, tToulouse: 22.8, tLyon: 22.1, pBordeaux: 48.6, pNantes: 44.2, pToulouse: 39.6, pLyon: 67.4, sBordeaux: 256, sNantes: 229, sToulouse: 265.3, sLyon: 278.6 },
+  { mois: 'Août', tBordeaux: 21.9, tNantes: 19.8, tToulouse: 23.0, tLyon: 21.9, pBordeaux: 56.7, pNantes: 50.3, pToulouse: 44.3, pLyon: 70.6, sBordeaux: 248.8, sNantes: 233, sToulouse: 247.2, sLyon: 246.9 },
+  { mois: 'Sep', tBordeaux: 18.8, tNantes: 17.1, tToulouse: 19.4, tLyon: 17.7, pBordeaux: 81.2, pNantes: 59.5, pToulouse: 45.8, pLyon: 86.6, sBordeaux: 208.8, sNantes: 199, sToulouse: 207, sLyon: 186 },
+  { mois: 'Oct', tBordeaux: 15.2, tNantes: 13.5, tToulouse: 15.3, tLyon: 13.5, pBordeaux: 83.3, pNantes: 88.8, pToulouse: 54.3, pLyon: 101, sBordeaux: 150.3, sNantes: 123, sToulouse: 160.3, sLyon: 123.5 },
+  { mois: 'Nov', tBordeaux: 10.4, tNantes: 9.4, tToulouse: 9.9, tLyon: 7.9, pBordeaux: 114.5, pNantes: 94.1, pToulouse: 55.2, pLyon: 92.1, sBordeaux: 100, sNantes: 91, sToulouse: 100.9, sLyon: 71.7 },
+  { mois: 'Déc', tBordeaux: 7.7, tNantes: 6.7, tToulouse: 7.1, tLyon: 4.6, pBordeaux: 106.4, pNantes: 101.0, pToulouse: 48.8, pLyon: 63, sBordeaux: 84.1, sNantes: 78, sToulouse: 91.7, sLyon: 50.4 }
+];
+
+const cityColors = {
+  Bordeaux: { main: '#E53E3E', dark: '#822727' },
+  Nantes: { main: '#3182CE', dark: '#1A365D' },
+  Toulouse: { main: '#805AD5', dark: '#553C9A' },
+  Lyon: { main: '#38A169', dark: '#276749' }
+};
+
+const calculateSeasonalData = () => {
+  const seasons = {
+    'Hiver': ['Déc', 'Jan', 'Fév'],
+    'Printemps': ['Mar', 'Avr', 'Mai'],
+    'Été': ['Juin', 'Juil', 'Août'],
+    'Automne': ['Sep', 'Oct', 'Nov']
+  };
+
+  return Object.entries(seasons).map(([season, months]) => {
+    const monthData = monthlyData.filter(d => months.includes(d.mois));
+    return {
+      mois: season,
+      tBordeaux: Number((monthData.reduce((acc, m) => acc + m.tBordeaux, 0) / 3).toFixed(1)),
+      tNantes: Number((monthData.reduce((acc, m) => acc + m.tNantes, 0) / 3).toFixed(1)),
+      tToulouse: Number((monthData.reduce((acc, m) => acc + m.tToulouse, 0) / 3).toFixed(1)),
+      tLyon: Number((monthData.reduce((acc, m) => acc + m.tLyon, 0) / 3).toFixed(1)),
+      pBordeaux: Number((monthData.reduce((acc, m) => acc + m.pBordeaux, 0)).toFixed(1)),
+      pNantes: Number((monthData.reduce((acc, m) => acc + m.pNantes, 0)).toFixed(1)),
+      pToulouse: Number((monthData.reduce((acc, m) => acc + m.pToulouse, 0)).toFixed(1)),
+      pLyon: Number((monthData.reduce((acc, m) => acc + m.pLyon, 0)).toFixed(1)),
+      sBordeaux: Number((monthData.reduce((acc, m) => acc + m.sBordeaux, 0)).toFixed(1)),
+      sNantes: Number((monthData.reduce((acc, m) => acc + m.sNantes, 0)).toFixed(1)),
+      sToulouse: Number((monthData.reduce((acc, m) => acc + m.sToulouse, 0)).toFixed(1)),
+      sLyon: Number((monthData.reduce((acc, m) => acc + m.sLyon, 0)).toFixed(1))
+    };
+  });
+};
+
+const seasonalData = calculateSeasonalData();
+
+const ClimatComparaison = () => {
+  const [selectedCities, setSelectedCities] = useState({
+    Bordeaux: true,
+    Nantes: true,
+    Toulouse: true,
+    Lyon: true
+  });
+  const [viewMode, setViewMode] = useState('monthly');
+  const [dataType, setDataType] = useState('precipitation');
+
+  const data = viewMode === 'monthly' ? monthlyData : seasonalData;
+
+  const toggleCity = (city) => {
+    setSelectedCities(prev => ({
+      ...prev,
+      [city]: !prev[city]
+    }));
+  };
+
+  const getBarDataKey = (city) => {
+    const prefix = dataType === 'precipitation' ? 'p' : 's';
+    return `${prefix}${city}`;
+  };
+
+  const getBarName = (city) => {
+    return `${dataType === 'precipitation' ? 'Précipitations' : 'Ensoleillement'} ${city}`;
+  };
+
+  return (
+    <div className="w-full h-full p-4">
+      <h2 className="text-xl font-bold mb-4 text-center">Comparaison climatique Bordeaux-Nantes-Toulouse-Lyon (1991-2020)</h2>
+      
+      <div className="flex justify-center space-x-4 mb-4">
+        {Object.entries(cityColors).map(([city, colors]) => (
+          <button 
+            key={city}
+            className={`px-3 py-1 rounded transition-colors ${selectedCities[city] ? `bg-${colors.main.slice(1)} text-white` : 'bg-gray-200'}`}
+            style={{ backgroundColor: selectedCities[city] ? colors.main : undefined }}
+            onClick={() => toggleCity(city)}
+          >
+            {city}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex justify-center space-x-4 mb-4">
+        <button 
+          className={`px-3 py-1 rounded ${viewMode === 'monthly' ? 'bg-gray-800 text-white' : 'bg-gray-200'}`}
+          onClick={() => setViewMode('monthly')}
+        >
+          Vue mensuelle
+        </button>
+        <button 
+          className={`px-3 py-1 rounded ${viewMode === 'seasonal' ? 'bg-gray-800 text-white' : 'bg-gray-200'}`}
+          onClick={() => setViewMode('seasonal')}
+        >
+          Vue saisonnière
+        </button>
+      </div>
+
+      <div className="flex justify-center space-x-4 mb-4">
+        <button 
+          className={`px-3 py-1 rounded ${dataType === 'precipitation' ? 'bg-gray-800 text-white' : 'bg-gray-200'}`}
+          onClick={() => setDataType('precipitation')}
+        >
+          Pluviométrie
+        </button>
+        <button 
+          className={`px-3 py-1 rounded ${dataType === 'sunshine' ? 'bg-gray-800 text-white' : 'bg-gray-200'}`}
+          onClick={() => setDataType('sunshine')}
+        >
+          Ensoleillement
+        </button>
+      </div>
+
+      <div className="h-96">
+        <ResponsiveContainer width="100%" height="100%">
+          <ComposedChart
+            data={data}
+            margin={{
+              top: 20,
+              right: 30,
+              bottom: 20,
+              left: 20,
+            }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="mois" />
+            <YAxis 
+              yAxisId="left" 
+              orientation="left" 
+              label={{ value: 'Température (°C)', angle: -90, position: 'insideLeft' }} 
+            />
+            <YAxis 
+              yAxisId="right" 
+              orientation="right" 
+              label={{ 
+                value: dataType === 'precipitation' ? 'Précipitations (mm)' : 'Ensoleillement (h)', 
+                angle: 90, 
+                position: 'insideRight' 
+              }} 
+            />
+            <Tooltip />
+            <Legend />
+            {Object.entries(selectedCities).map(([city, isSelected]) => 
+              isSelected && (
+                <React.Fragment key={city}>
+                  <Bar 
+                    yAxisId="right" 
+                    dataKey={getBarDataKey(city)} 
+                    name={getBarName(city)} 
+                    fill={cityColors[city].main} 
+                  />
+                  <Line 
+                    yAxisId="left" 
+                    type="monotone" 
+                    dataKey={`t${city}`} 
+                    name={`Température ${city}`} 
+                    stroke={cityColors[city].dark} 
+                    strokeWidth={2} 
+                    dot={false} 
+                  />
+                </React.Fragment>
+              )
+            )}
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+};
+
+export default ClimatComparaison;
